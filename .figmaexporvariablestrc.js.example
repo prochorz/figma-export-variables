@@ -1,0 +1,17 @@
+const fs = require('fs');
+const path = require('path');
+
+const output = (collections) => {
+    const filePath = path.resolve(process.cwd(), 'variables.json');
+
+    return fs.writeFileSync(filePath, JSON.stringify(collections, null, 2));
+}
+
+module.exports = {
+    files: [
+        {
+            id: 'SOME_UNIQ_ID',
+            outputters: [output]
+        }
+    ]
+};

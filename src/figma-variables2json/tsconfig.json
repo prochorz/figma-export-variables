@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "amd",
+    "strict": true,
+    "moduleResolution": "node",
+    "lib": ["es2019"],
+    "rootDir": "./",
+    "outDir": "../../dist",
+    "outFile": "../../dist/figma-variables2json.js",
+    "skipLibCheck": true,
+
+    "typeRoots": ["../../node_modules/@types", "../../node_modules/@figma"]
+  },
+  "include": ["./index.ts"]
+}

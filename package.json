@@ -1,0 +1,51 @@
+{
+  "name": "figma-export-variables",
+  "version": "0.0.3",
+  "description": "Export figma variables with puppeteer",
+  "bin": {
+    "figma-export-variables": "./bin/run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prochorz/figma-export-variables"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "build": "tsc --build tsconfig.json src/figma-variables2json/tsconfig.json",
+    "dev": "rm -rf ./dist && npm run build && figma-export-variables",
+    "publish-patch": "npm run build && npm version patch && git push && npm publish --registry https://registry.npmjs.org",
+    "publish-minor": "npm run build && npm version minor && git push && npm publish --registry https://registry.npmjs.org",
+    "publish-major": "npm run build && npm version major && git push && npm publish --registry https://registry.npmjs.org",
+    "pre-commit": "tsc --noEmit && npm run lint"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/prochorz/figma-export-variables#readme",
+  "files": [
+    "dist/*"
+  ],
+  "keywords": [
+    "figma",
+    "export",
+    "design",
+    "variables",
+    "typography",
+    "cli",
+    "figma cli"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ora": "~5.4.1",
+    "puppeteer": "^21.7.0",
+    "sade": "^1.8.1"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.83.0",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}

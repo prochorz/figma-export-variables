@@ -13,7 +13,7 @@ import {
     getCollectionsFile
 } from './figma-file';
 
-const userDataDir = '.cache';
+const userDataDir = 'node_modules/.figma-cache';
 
 export class FileExport {
     private page!: Page;

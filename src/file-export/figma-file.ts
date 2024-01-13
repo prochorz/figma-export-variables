@@ -105,7 +105,7 @@ async function getCollectionsFile(page: Page, figmaFileId: string) {
         document.head.appendChild(script);
     });
 
-    await page.addScriptTag({ path: path.resolve(process.cwd(), './dist/figma-variables2json.js') });
+    await page.addScriptTag({ path: path.resolve(__dirname, '../figma-variables2json.js') });
 
     return page.evaluate(async () => {
         await windowFigmaWaiter();

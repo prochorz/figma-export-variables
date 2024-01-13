@@ -1,6 +1,6 @@
 {
   "name": "figma-export-variables",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Export figma variables with puppeteer",
   "bin": {
     "figma-export-variables": "./bin/run"

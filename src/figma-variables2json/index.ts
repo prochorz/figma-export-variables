@@ -71,7 +71,7 @@ class FigmaExportPlugin {
                 }
 
                 return acc;
-            }, {} as any)
+            }, { mode } as any)
         });
     }
 
@@ -89,11 +89,13 @@ class FigmaExportPlugin {
 
 const getFormatedVariables = ()=>{
     const instance = new FigmaExportPlugin();
+    console.log(instance.localCollections);
 
     if (!instance.localCollections.length) {
         throw new Error('emptyCollections');
     }
 
+    // return new Promise(() => {});
     return instance.run();
 };
 

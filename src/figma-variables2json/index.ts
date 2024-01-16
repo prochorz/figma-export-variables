@@ -1,63 +1,100 @@
-import { transformColor } from './utils/figma-util';
-import { getVariables } from './plugin/variables2json';
-import { GeneratedStyle } from './utils/GeneratedStyle';
-import { E_COLOR_TYPES } from './constants/figma-constants';
+import { getUnit } from './utils/unit-utils';
+import { getColorSpecification } from './utils/color-utils';
+import { sortObjectsByAttributeNew } from './utils/generic-utils';
+import {
+    E_UNIT_SPEC,
+    E_COLOR_SPEC
+} from './constants/config-constants';
 
-function transformConfig(config: any) {
-    const { excludePrivate, colorFormat } = config.settings;
-    const { variables } = config;
+type TMode = VariableCollection['modes'][0];
+type TResolvedVariables = Record<VariableResolvedDataType, Array<any>>
 
-    const collections = variables.reduce((acc: Array<any>, variable: any) => {
-        const generatedStyle = GeneratedStyle.fromObject(variable);
-        const isPrivateExist = !(excludePrivate && generatedStyle.isPrivate());
+class FigmaExportPlugin {
+    localCollections = figma.variables.getLocalVariableCollections();
 
-        let collection = acc.find((c) => c.name == generatedStyle.collection);
+    unitRem = E_UNIT_SPEC.PX;
+    colorSpecification = E_COLOR_SPEC.HEX;
 
-        if (isPrivateExist) {
-            if (!collection) {
-                collection = {
-                    name: generatedStyle.collection,
-                    modes: []
-                };
+    getOrgVariablse(variable: Variable, mode: TMode): Variable {
+        const valuesLink = variable?.valuesByMode?.[mode.modeId] as VariableAlias;
+        const isVariableAlias = valuesLink?.type === "VARIABLE_ALIAS";
 
-                acc.push(collection);
-            }
-            for (const styleValue of generatedStyle.values) {
-                const mode = collection.modes.find(({ name }: any) => name == styleValue.modeName);
-                const variableInfo = {
-                    name: generatedStyle.name,
-                    type: generatedStyle.type,
-                    isAlias: styleValue.isAlias,
-                    value: styleValue.isAlias
-                        ? styleValue.value
-                        : transformColor(colorFormat, generatedStyle.type, styleValue.value)
-                };
+        return isVariableAlias
+            ? this.getOrgVariablse(figma.variables.getVariableById(valuesLink.id) as Variable, mode)
+            : variable
+    }
 
-                if (mode) {
-                    mode.variables.push(variableInfo);
-                } else {
-                    collection.modes.push({
-                        name: styleValue.modeName,
-                        variables: [variableInfo]
+    getExport(collection: VariableCollection) {
+        return collection.modes.map((mode) => {
+            const items = collection.variableIds.reduce((acc, id) => {
+                const variable = figma.variables.getVariableById(id) as Variable;
+                const orgVariable = this.getOrgVariablse(variable, mode);
+
+                const getValue = () => {
+                    const value = orgVariable.valuesByMode?.[mode.modeId] || Object.values(orgVariable.valuesByMode)[0];
+
+                    switch(variable.resolvedType) {
+                        case 'COLOR':
+                            return getColorSpecification(value as RGBA, this.colorSpecification);
+                        case 'FLOAT':
+                            const { numberRem, numberUnit } = getUnit(value as number, this.unitRem);
+                            return `${numberRem}${numberUnit}`;
+                        default:
+                            return null;
+                    }
+                }
+
+                const normaliseValue = getValue();
+
+                if (normaliseValue) {
+                    const isVariableAlias = variable.name === orgVariable.name;
+
+                    acc[variable.resolvedType].push({
+                        name: variable.name,
+                        value: normaliseValue,
+                        var: orgVariable.name,
+                        alias: isVariableAlias
                     });
                 }
-            }
-        }
 
-        return acc;
-    }, []);
+                return acc;
+            }, {
+                COLOR: [],
+                FLOAT: [],
+                BOOLEAN: [],
+                STRING: []
+            } as TResolvedVariables);
 
-    return { collections };
+            return Object.entries(items).reduce((acc, [key, item]) => {
+                if (item.length) {
+                    acc[key] = sortObjectsByAttributeNew(item);
+                }
+
+                return acc;
+            }, {} as any)
+        });
+    }
+
+    run() {
+        return this.localCollections.map(({ id }) => {
+            const collection = figma.variables.getVariableCollectionById(id) as VariableCollection;
+        
+            return {
+                name: collection.name,
+                values: this.getExport(collection)
+            };
+        });
+    }
 }
 
-function getFormatedVariables() {
-    return transformConfig({
-        settings: {
-            excludePrivate: false,
-            colorFormat: E_COLOR_TYPES.HEX
-        },
-        variables: getVariables()
-    });
-}
+const getFormatedVariables = ()=>{
+    const instance = new FigmaExportPlugin();
+
+    if (!instance.localCollections.length) {
+        throw new Error('emptyCollections');
+    }
+
+    return instance.run();
+};
 
 export { getFormatedVariables };

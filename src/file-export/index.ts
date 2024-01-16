@@ -1,15 +1,14 @@
 import type {
     Page,
-    Browser
+    Browser,
+    BrowserLaunchArgumentOptions
 } from 'puppeteer';
 
 import puppeteer from 'puppeteer';
 
 import {
-    deleteFile,
     waitAuthFile,
     checkAuthFile,
-    duplicateFile,
     getCollectionsFile
 } from './figma-file';
 
@@ -19,12 +18,23 @@ export class FileExport {
     private page!: Page;
     private browser!: Browser;
 
-    async create(headless: any = 'new') {
+    private headless: BrowserLaunchArgumentOptions['headless'] = 'new';
+
+    constructor(options: any) {
+        this.headless = options.interactive ? false : this.headless;
+    }
+
+    async create(headless?: BrowserLaunchArgumentOptions['headless']) {
         if (this.browser) {
             await this.browser.close();
         }
 
-        this.browser = await puppeteer.launch({ headless, userDataDir });
+        const config = {
+            headless: headless || this.headless,
+            userDataDir
+        };
+
+        this.browser = await puppeteer.launch(config);
 
         this.page = await this.browser.newPage();
     }
@@ -40,19 +50,7 @@ export class FileExport {
     }
 
     async exportFile(figmaFileId: string) {
-        const figmaFileIdDuplicate = await duplicateFile(this.page, figmaFileId);
-
-        let collections;
-    
-        try {
-            collections = await getCollectionsFile(this.page, figmaFileIdDuplicate);
-        } catch (error: any) {
-            throw new Error(error.message);
-        } finally {
-            await deleteFile(this.page, figmaFileIdDuplicate);
-        }
-
-        return collections;
+        return await getCollectionsFile(this.page, figmaFileId);
     }
 
     async destroy() {

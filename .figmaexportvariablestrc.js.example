@@ -8,10 +8,10 @@ const output = (collections) => {
 }
 
 module.exports = {
-    files: [
-        {
-            id: 'SOME_UNIQ_ID',
+    commands: [
+        ['variables', {
+            fileId: 'SOME_UNIQ_ID',
             outputters: [output]
-        }
+        }]
     ]
 };

@@ -11,8 +11,8 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "build": "tsc --build tsconfig.json src/figma-variables2json/tsconfig.json",
-    "dev": "rm -rf ./dist && npm run build && figma-export-variables",
+    "build": "rm -rf ./dist && tsc --build tsconfig.json src/figma-variables2json/tsconfig.json",
+    "dev": "npm run build && figma-export-variables",
     "publish-patch": "npm run build && npm version patch && git push && npm publish --registry https://registry.npmjs.org",
     "publish-minor": "npm run build && npm version minor && git push && npm publish --registry https://registry.npmjs.org",
     "publish-major": "npm run build && npm version major && git push && npm publish --registry https://registry.npmjs.org",

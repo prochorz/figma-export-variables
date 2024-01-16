@@ -10,7 +10,10 @@ const prog = sade('figma-export-variables');
 
 const spinner = ora();
 
-prog.version(pkg.version);
+prog.version(pkg.version)
+    .option('-i, --interactive', 'Run puppeteer GUI ', false)
+    .example('use-config --interactive')
+;
 
 prog
     .command('use-config [configFile]', undefined)
@@ -18,11 +21,12 @@ prog
     .example('use-config')
     .example('use-config ./.figma-export-variables.js')
     .action(
-        async (configFile = '.figmaexporvariablestrc.js') => {
-            const fileExport = new FileExport();
+        async (configFile = '.figmaexportvariablestrc.js', opts) => {
+            const fileExport = new FileExport(opts);
             const configPath = path.resolve(configFile);
-            const { files = [] } = (fs.existsSync(configPath) ? require(configPath) : {});
-            const firstFileId = files[0]?.id;
+            const { commands = [] } = (fs.existsSync(configPath) ? require(configPath) : {});
+            const files = commands.filter(([key]: any) => key === 'variables').map(([_, item]: any) => item);
+            const firstFileId = files[0]?.fileId;
 
             spinner.info('Run puppeteer');
 
@@ -46,30 +50,33 @@ prog
                 .catch(() => spinner.fail('Fail with Login'));
  
             // STEP 3
-            try {
-                for(const file of files) { 
-                    spinner.indent = 0;
-                    spinner.start('Export file ' + file.id);
-    
-                    const collections = await fileExport.exportFile(file.id);
-    
+            for(const file of files) { 
+                spinner.indent = 0;
+
+                spinner.info('File ' + file.fileId);
+
+                try {
+                    spinner.indent = 2;
+                    spinner.start('Export');
+
+                    const collections = await fileExport.exportFile(file.fileId);
+
                     spinner.succeed();
     
                     for(const [index, output] of file.outputters.entries()) {
-                        spinner.indent = 2;
-                        
+                        spinner.indent = 4;
                         spinner.start('Output function ' + index);
          
                         await output(collections);
         
                         spinner.succeed();
                     }
+                } catch (error: any) {
+                    spinner.fail('Export failed with error: ' + error?.message);
                 }
-
-                spinner.info('Done');
-            } catch (error: any) {
-                spinner.fail(error?.message);
             }
+
+            spinner.info('Finish');
 
             await fileExport.destroy();
         }

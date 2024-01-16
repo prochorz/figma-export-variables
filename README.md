@@ -41,11 +41,11 @@ Let's create the file `.figmaexportvariablestrc.js` and paste the following:
 
 ```js
 module.exports = {
-    files: [
-        {
-            id: 'SOME_UNIQ_ID',
-            outputters: [outputFn]
-        }
+    commands: [
+        ['variables', {
+            fileId: 'SOME_UNIQ_ID',
+            outputters: [output]
+        }]
     ]
 };
 ```

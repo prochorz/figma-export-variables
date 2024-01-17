@@ -50,30 +50,41 @@ prog
                 .catch(() => spinner.fail('Fail with Login'));
  
             // STEP 3
-            for(const file of files) { 
-                spinner.indent = 0;
+            try {
+                for(const file of files) { 
+                    spinner.indent = 0;
 
-                spinner.info('File ' + file.fileId);
-
-                try {
+                    spinner.info('File ' + file.fileId);
+                    
                     spinner.indent = 2;
                     spinner.start('Export');
 
-                    const collections = await fileExport.exportFile(file.fileId);
+                    let collections;
 
-                    spinner.succeed();
-    
+                    await fileExport.exportFile(file.fileId)
+                        .catch(error => {
+                            spinner.fail('Export failed with error: ' + error?.message);
+
+                            spinner.start('Export try with duplicate file');
+
+                            return fileExport.exportByDuplicateFile(file.fileId);
+                        })
+                        .then(response => {
+                            collections = response;
+                            spinner.succeed()
+                        });
+        
                     for(const [index, output] of file.outputters.entries()) {
                         spinner.indent = 4;
                         spinner.start('Output function ' + index);
-         
+        
                         await output(collections);
         
                         spinner.succeed();
                     }
-                } catch (error: any) {
-                    spinner.fail('Export failed with error: ' + error?.message);
                 }
+            } catch (error: any) {
+                spinner.fail('Export failed with error: ' + error?.message);
             }
 
             spinner.info('Finish');

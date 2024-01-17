@@ -2,7 +2,7 @@ import type { Page } from 'puppeteer';
 
 import path from 'node:path';
 
-function windowFigmaWaiter(isLoop?: boolean) {
+function windowFigmaWaiter(isLoop = true) {
     return new Promise((resolve, reject) => {
         const callback = () => {
             setTimeout(() => {
@@ -16,7 +16,7 @@ function windowFigmaWaiter(isLoop?: boolean) {
         callback();
 
         if (!isLoop) {
-            setTimeout(reject, 5000);
+            setTimeout(reject, 10_000);
         }
     });
 }
@@ -38,7 +38,7 @@ async function checkAuthFile(page: Page, figmaFileId: string) {
 
     await page.addScriptTag({ content: `${windowFigmaWaiter}` });
 
-    await page.evaluate(() => windowFigmaWaiter());
+    await page.evaluate(() => windowFigmaWaiter(false));
 
     await page.setDefaultNavigationTimeout(0);
 }
@@ -50,9 +50,50 @@ async function waitAuthFile(page: Page, figmaFileId: string) {
 
     await page.addScriptTag({ content: `${windowFigmaWaiter}` });
 
-    await page.evaluate(() => windowFigmaWaiter(true));
+    await page.evaluate(() => windowFigmaWaiter());
 
     await page.setDefaultNavigationTimeout(30_000);
+}
+
+async function duplicateFile(page: Page, figmaFileId: string) {
+    await goToFile(page, figmaFileId);
+
+    await page.addScriptTag({ content: `var figmaFileId = "${figmaFileId}";` });
+ 
+    const { meta } = await page.evaluate(async () => {
+        const rawResponse = await fetch(`https://www.figma.com/api/multiplayer/${figmaFileId}/copy`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        return rawResponse.json();
+    });
+
+    return meta.key;
+}
+
+async function deleteFile(page: Page, figmaFileId: string) {
+    await goToFile(page, figmaFileId);
+
+    await page.addScriptTag({ content: `var figmaFileId = "${figmaFileId}";` });
+
+    await page.evaluate(async () => {
+        await fetch('https://www.figma.com/api/files_batch', {
+            method: 'DELETE',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: [
+                    { key: figmaFileId }
+                ],
+                trashed: true
+            })
+        });
+    });
 }
 
 async function getCollectionsFile(page: Page, figmaFileId: string) {
@@ -80,7 +121,6 @@ async function getCollectionsFile(page: Page, figmaFileId: string) {
             (window.require as any)(['index'], ({ getFormatedVariables }: any) => {
                 try {
                     const payload = getFormatedVariables();
-                    console.log(payload, resolve);
                     resolve(payload);
                 } catch (error) {
                     reject(error);
@@ -91,8 +131,10 @@ async function getCollectionsFile(page: Page, figmaFileId: string) {
 }
 
 export {
+deleteFile,
     waitAuthFile,
     checkAuthFile,
+duplicateFile,
     getCollectionsFile
 };
 

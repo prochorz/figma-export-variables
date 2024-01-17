@@ -7,7 +7,9 @@ import type {
 import puppeteer from 'puppeteer';
 
 import {
+    deleteFile,
     waitAuthFile,
+    duplicateFile,
     checkAuthFile,
     getCollectionsFile
 } from './figma-file';
@@ -51,6 +53,22 @@ export class FileExport {
 
     async exportFile(figmaFileId: string) {
         return await getCollectionsFile(this.page, figmaFileId);
+    }
+
+    async exportByDuplicateFile(figmaFileId: string) {
+        const figmaFileIdDuplicate = await duplicateFile(this.page, figmaFileId);
+
+        let collections
+    
+        try {
+            collections = await getCollectionsFile(this.page, figmaFileIdDuplicate);
+        } catch (error: any) {
+            throw new Error(error.message);
+        } finally {
+            await deleteFile(this.page, figmaFileIdDuplicate);
+        }
+
+        return collections;
     }
 
     async destroy() {

@@ -4,6 +4,7 @@
 
 ## How it works?
 This script initiates the browser and extracts variables from Figma within its interface. A Figma login is required. If it's your initial login using Puppeteer, the script may open the browser with a graphical user interface to facilitate the manual login process into Figma.
+If the script cannot find a collection inside the Figma file, it will attempt to copy the file and retrieve the collection from the duplicate. Upon successfully or unsuccessfully obtaining the data from the duplicate, the duplicated file will be deleted.
 
 ## Install
 

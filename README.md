@@ -3,8 +3,7 @@
 > Command line for export variables
 
 ## How it works?
-This script initiates the browser and extracts variables from Figma within its interface. A Figma login is required. If it's your initial login using Puppeteer, the script may open the browser with a graphical user interface to facilitate the manual login process into Figma.
-If the script cannot find a collection inside the Figma file, it will attempt to copy the file and retrieve the collection from the duplicate. Upon successfully or unsuccessfully obtaining the data from the duplicate, the duplicated file will be deleted.
+This script is designed to kickstart the browser, navigating through Figma's interface to extract variables. Its primary goal is to duplicate a file and retrieve the collection from the replica. Post-extraction, whether successful or not, the duplicated file undergoes deletion. A Figma login is imperative. In case it's the first login via Puppeteer, the script may launch the browser with a graphical user interface, streamlining the manual login process into Figma.
 
 ## Install
 

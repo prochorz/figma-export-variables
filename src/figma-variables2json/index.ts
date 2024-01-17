@@ -78,7 +78,7 @@ class FigmaExportPlugin {
     run() {
         return this.localCollections.map(({ id }) => {
             const collection = figma.variables.getVariableCollectionById(id) as VariableCollection;
-        
+
             return {
                 name: collection.name,
                 values: this.getExport(collection)
@@ -87,15 +87,9 @@ class FigmaExportPlugin {
     }
 }
 
-const getFormatedVariables = ()=>{
+const getFormatedVariables = () => {
     const instance = new FigmaExportPlugin();
-    console.log(instance.localCollections);
 
-    if (!instance.localCollections.length) {
-        throw new Error('emptyCollections');
-    }
-
-    // return new Promise(() => {});
     return instance.run();
 };
 

@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import path from 'node:path';
+import path from 'path';
 
 function windowFigmaWaiter(isLoop = true) {
     return new Promise((resolve, reject) => {
@@ -59,7 +59,7 @@ async function duplicateFile(page: Page, figmaFileId: string) {
     await goToFile(page, figmaFileId);
 
     await page.addScriptTag({ content: `var figmaFileId = "${figmaFileId}";` });
- 
+
     const { meta } = await page.evaluate(async () => {
         const rawResponse = await fetch(`https://www.figma.com/api/multiplayer/${figmaFileId}/copy`, {
             method: 'POST',
@@ -99,7 +99,6 @@ async function deleteFile(page: Page, figmaFileId: string) {
 async function getCollectionsFile(page: Page, figmaFileId: string) {
     await goToFile(page, figmaFileId);
 
-    await page.addScriptTag({ content: `var copyFileKey = "${figmaFileId}";` });
     await page.addScriptTag({ content: `${windowFigmaWaiter}` });
 
     await page.evaluate(async () => {
@@ -131,10 +130,10 @@ async function getCollectionsFile(page: Page, figmaFileId: string) {
 }
 
 export {
-deleteFile,
+    deleteFile,
     waitAuthFile,
     checkAuthFile,
-duplicateFile,
+    duplicateFile,
     getCollectionsFile
 };
 

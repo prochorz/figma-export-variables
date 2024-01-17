@@ -1,7 +1,7 @@
+import fs from 'fs';
 import ora from 'ora';
 import sade from 'sade';
-import fs from 'node:fs';
-import path from 'node:path';
+import path from 'path';
 
 import { FileExport } from './file-export';
 import * as pkg from '../package.json';
@@ -32,7 +32,7 @@ prog
 
             // STEP 1
             spinner.start('Create Browser');
- 
+
             await fileExport.create()
                 .then(() => spinner.succeed())
                 .catch(() => spinner.fail());
@@ -48,38 +48,27 @@ prog
                 })
                 .then(() => spinner.succeed())
                 .catch(() => spinner.fail('Fail with Login'));
- 
+
             // STEP 3
             try {
-                for(const file of files) { 
+                for(const file of files) {
                     spinner.indent = 0;
 
                     spinner.info('File ' + file.fileId);
-                    
+
                     spinner.indent = 2;
                     spinner.start('Export');
 
-                    let collections;
+                    let collections = await fileExport.exportByDuplicateFile(file.fileId);
 
-                    await fileExport.exportFile(file.fileId)
-                        .catch(error => {
-                            spinner.fail('Export failed with error: ' + error?.message);
+                    spinner.succeed();
 
-                            spinner.start('Export try with duplicate file');
-
-                            return fileExport.exportByDuplicateFile(file.fileId);
-                        })
-                        .then(response => {
-                            collections = response;
-                            spinner.succeed()
-                        });
-        
                     for(const [index, output] of file.outputters.entries()) {
                         spinner.indent = 4;
                         spinner.start('Output function ' + index);
-        
+
                         await output(collections);
-        
+
                         spinner.succeed();
                     }
                 }
